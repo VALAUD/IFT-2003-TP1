@@ -1,0 +1,123 @@
+%Poser ?- debuter.
+debuter:-
+    jouer_tour([["-","-","-","-"],["-","-","-","-"],["-","-","-","-"],["-","-","-","-"]], 1).
+
+tableau(Tableau, Colonnes, Lignes):-
+    Tableau = [[A1, A2, A3, A4],
+               [B1, B2, B3, B4],
+               [C1, C2, C3, C4],
+               [D1, D2, D3, D4]],
+    Colonnes = [[A1, B1, C1, D1], [A2, B2, C2, D2], [A3, B3, C3, D3], [A4, B4, C4, D4]],
+    Lignes = [[A1, A2, A3, A4], [B1, B2, B3, B4], [C1, C2, C3, C4], [D1, D2, D3, D4]].
+
+afficher(Tableau):-
+    Tableau = [[A1, A2, A3, A4],
+               [B1, B2, B3, B4],
+               [C1, C2, C3, C4],
+               [D1, D2, D3, D4]],
+    format("~n| ~w | ~w | ~w | ~w |~n| ~w | ~w | ~w | ~w |~n| ~w | ~w | ~w | ~w |~n| ~w | ~w | ~w | ~w |~n",[D1, D2, D3, D4, C1, C2, C3, C4, B1, B2, B3, B4, A1, A2, A3, A4]).
+
+joueur(X, Nom, Jeton):-
+    0 is X mod 2,
+    Nom = "utilisateur",
+    Jeton = "O".
+joueur(X, Nom, Jeton):-
+    X mod 2 =\= 0,
+    Nom = "ia",
+    Jeton = "X".
+
+jouer_tour(Tableau,X):-
+    tableau(Tableau, Liste_des_colonnes, Liste_des_lignes),
+    joueur(X, Nom, Jeton),
+
+    afficher(Tableau), nl,
+    format("
+    C'est le tour de ~w (~w). Dans quelle colonne souhaitez-vous placer le jeton? (1 à 4)~n",[Nom, Jeton]),
+    read(No_colonne),
+
+    %Ajouter le jeton à l'emplacement choisi par le joueur
+    extraire(No_colonne, Liste_des_colonnes, Colonne_extraite),
+    trouver_emplacement_libre(Colonne_extraite, 1, No_ligne),
+    extraire(No_ligne, Liste_des_lignes, Ligne_extraite),
+    modifier(No_colonne, Ligne_extraite, Jeton, Nouvelle_ligne),
+    modifier(No_ligne, Tableau, Nouvelle_ligne, Nouveau_tableau),
+
+    %verifier si nouveau plateau conteint un combo gagnant
+    verifier_victoire(X, Nouveau_tableau).
+
+
+% CHAT GPT
+% Recherche d'un emplacement vide dans une colonne en particulier
+% doit gerer le cas ici où la col est pleine et user change de choix_colonne
+trouver_emplacement_libre([E|_], No_ligne, No_ligne) :-
+    E == "-", !.
+trouver_emplacement_libre([_|R], No_ligne, Ligne_libre) :-
+    Y is No_ligne + 1,
+    trouver_emplacement_libre(R, Y, Ligne_libre).
+
+% Extraire (une colonne, une ligne, un element) d'une liste de 4 elements
+extraire(1,[E|_], E).
+extraire(2,[_,E|_], E).
+extraire(3,[_,_,E|_], E).
+extraire(4,[_,_,_,E], E).
+
+% modifier une liste de 4 elements (tels qu'une ligne ou un tableau
+modifier(1,[_|R], Modifier_element, [Modifier_element|R]).
+modifier(2,[A,_|R], Modifier_element, [A, Modifier_element|R]).
+modifier(3,[A,B,_|R], Modifier_element,[A, B, Modifier_element|R]).
+modifier(4,[A,B,C,_], Modifier_element,[A,B,C, Modifier_element]).
+
+verifier_victoire(X, Tableau):-
+    etats_gagnants(Tableau),
+    joueur(X, Nom, _),
+    format("partie terminé!~n~w a gagné!~n", [Nom]),!.
+
+verifier_victoire(X, Tableau):-
+    %changer de joueur
+    joueur(X, _, _),
+    Y is X+1,
+
+    %prochain tour
+    jouer_tour(Tableau,Y).
+
+etat_gagnant([X, Y, Z]):-
+    X == Y,
+    X == Z,
+    X \= "-".
+
+etats_gagnants(Tableau):-
+
+    Tableau = [[A1, A2, A3, A4],
+               [B1, B2, B3, B4],
+               [C1, C2, C3, C4],
+               [D1, D2, D3, D4]],
+
+    %colonnes gagnantes
+    (   etat_gagnant([A1, B1, C1]);
+    etat_gagnant([A2, B2, C2]);
+    etat_gagnant([A3, B3, C3]);
+    etat_gagnant([A4, B4, C4]);
+    etat_gagnant([B1, C1, D1]);
+    etat_gagnant([B2, C2, D2]);
+    etat_gagnant([B3, C3, D3]);
+    etat_gagnant([B4, C4, D4]);
+
+    %lignes gagnantes
+    etat_gagnant([A1, A2, A3]);
+    etat_gagnant([B1, B2, B3]);
+    etat_gagnant([C1, C2, C3]);
+    etat_gagnant([D1, D2, D3]);
+    etat_gagnant([A2, A3, A4]);
+    etat_gagnant([B2, B3, B4]);
+    etat_gagnant([C2, C3, C4]);
+    etat_gagnant([D2, D3, D4]);
+
+    %diagonales gagnantes
+    etat_gagnant([B1, C2, D3]);
+    etat_gagnant([A1, B2, C3]);
+    etat_gagnant([B2, C3, D4]);
+    etat_gagnant([A2, B3, C4]);
+    etat_gagnant([B4, C3, D2]);
+    etat_gagnant([A4, B3, C2]);
+    etat_gagnant([B3, C2, D1]);
+    etat_gagnant([A3, B2, C1])).
