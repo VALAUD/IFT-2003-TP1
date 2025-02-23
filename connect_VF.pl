@@ -3,6 +3,58 @@
 debuter:-
     jouer_tour([["-","-","-","-"],["-","-","-","-"],["-","-","-","-"],["-","-","-","-"]], 1).
 
+%Technique de recherche
+%Meilleur d'abord
+%meilleurdabord(Tableau, Joueur, Meilleurcoup).
+
+
+        
+%Determiner quel mouvements sont possibles
+%mouvementsPossibles(Tableau, Mouvement):-
+trouverColonneJouable(Tableau, 1, [], Mouvement).
+        
+%Trouver une colonne jouable
+trouverColonneJouable(Tableau, Colonne, TabAcc, Mouvement) :- Colonne < 5, (colonneJouable(Plateau, NumColonne),
+    nouvTabAcc = [NumColonne | TabAcc] ; nouvTabAcc = Acc), ColonneSuivante = NumColonne + 1,
+    trouverColonneJouable(Tableau, ColonneSuivante, nouvTab, Mouvement).
+    
+
+%Une colonne jouable est une colonne qui n'a pas ete remplie encore
+colonneJouable(Tableau, NumColonne) :-
+    colonneN(Plateau, NumColonne, Colonne),
+    \+ colonnePleine(Colonne).
+    
+%Chercher une colonne du tableau
+colonneN(Tableau, NumColonne, Colonne) :-
+    trouverColRecursion(Tableau, NumColonne, Colonne).
+
+%Recursion permettant de trouver colonne
+trouverColRecursion([],_, TabAcc, TabAcc).
+trouverColRecursion([Ligne | Reste], NumColonne, Colonne) :-
+    positionCellule(Ligne, Cellule, NumColonne),
+    trouverColRecursion(Reste, NumColonne, [Cellule, TabAcc], Colonne).
+
+%Determiner si colonne pleine
+%Utilise chatGPT pour savoir l'equivalent de !(enonce) 
+colonnePleine(Colonne) :-
+    \+ membre("-", Colonne).
+            
+%Rechercher l'element dans une cellule du tableau
+%Code tire de l'exemple Taquin fournit dans l'enonce
+
+%Base si la position = 1
+positionCellule([Element | _], Element, 1) :- !.
+%Si position non 1 on cherche le reste de la liste
+positionCellule([_ | Reste], Element, P) :- positionCellule(Reste, Element, NP), P is NP +1.           
+positionCellule( [Element | _ ], Element, 1) :- 
+            positionCellule( [ _ | Reste], Element, P) :- NP is P - 1, positionCellule(Reste, Element, NP).
+    		 
+    
+%Predicats necessaires
+
+%Configuration initiale
+
+%Jeu
 tableau(Tableau, Colonnes, Lignes):-
     Tableau = [[A1, A2, A3, A4],
                [B1, B2, B3, B4],
@@ -33,10 +85,10 @@ jouer_tour(Tableau,X):-
 
     afficher(Tableau), nl,
     format("
-    C'est le tour de ~w (~w). Dans quelle colonne souhaitez-vous placer le jeton? (1 à 4)~n",[Nom, Jeton]),
+    C'est le tour de ~w (~w). Dans quelle colonne souhaitez-vous placer le jeton? (1 ï¿½ 4)~n",[Nom, Jeton]),
     read(No_colonne),
 
-    %Ajouter le jeton à l'emplacement choisi par le joueur
+    %Ajouter le jeton ï¿½ l'emplacement choisi par le joueur
     extraire(No_colonne, Liste_des_colonnes, Colonne_extraite),
     trouver_emplacement_libre(Colonne_extraite, 1, No_ligne),
     extraire(No_ligne, Liste_des_lignes, Ligne_extraite),
@@ -49,7 +101,7 @@ jouer_tour(Tableau,X):-
 
 % CHAT GPT
 % Recherche d'un emplacement vide dans une colonne en particulier
-% doit gerer le cas ici où la col est pleine et user change de choix_colonne
+% doit gerer le cas ici oï¿½ la col est pleine et user change de choix_colonne
 trouver_emplacement_libre([E|_], No_ligne, No_ligne) :-
     E == "-", !.
 trouver_emplacement_libre([_|R], No_ligne, Ligne_libre) :-
@@ -71,7 +123,7 @@ modifier(4,[A,B,C,_], Modifier_element,[A,B,C, Modifier_element]).
 verifier_victoire(X, Tableau):-
     etats_gagnants(Tableau),
     joueur(X, Nom, _),
-    format("partie terminé!~n~w a gagné!~n", [Nom]),!.
+    format("partie terminï¿½!~n~w a gagnï¿½!~n", [Nom]),!.
 
 verifier_victoire(X, Tableau):-
     %changer de joueur
@@ -122,12 +174,3 @@ etats_gagnants(Tableau):-
     etat_gagnant([A4, B3, C2]);
     etat_gagnant([B3, C2, D1]);
     etat_gagnant([A3, B2, C1])).
-
-
-
-
-
-
-
-
-
